@@ -13,12 +13,20 @@ protocol ScheduleViewControllerDelegate: AnyObject {
 
 final class ScheduleViewController: UIViewController {
     
+    // MARK: - Public
+    
     weak var delegate: ScheduleViewControllerDelegate?
+    
+    // MARK: - Private UI
     
     private let tableView = UITableView()
     private let doneButton = UIButton()
     
-    private var selectedDays: [Weekday] = []
+    // MARK: - Private Properties
+    
+    private var selectedDays: Set<Weekday> = []
+    
+    // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,6 +34,8 @@ final class ScheduleViewController: UIViewController {
         setupSubViews()
         setupConstraints()
     }
+    
+    // MARK: - Setup
     
     private func setupView() {
         view.backgroundColor = .white
@@ -71,8 +81,11 @@ final class ScheduleViewController: UIViewController {
         ])
     }
     
+    // MARK: - Actions
+    
     @objc private func doneButtonTapped() {
-        delegate?.scheduleSelected(selectedDays)
+        let schedule = Weekday.allCases.filter { selectedDays.contains($0) }
+        delegate?.scheduleSelected(schedule)
         navigationController?.popViewController(animated: true)
     }
     
@@ -80,12 +93,14 @@ final class ScheduleViewController: UIViewController {
         let day = Weekday.allCases[sender.tag]
         
         if sender.isOn {
-            selectedDays.append(day)
+            selectedDays.insert(day)
         } else {
-            selectedDays.removeAll { $0 == day }
+            selectedDays.remove(day)
         }
     }
 }
+
+// MARK: - UITableViewDataSource
 
 extension ScheduleViewController: UITableViewDataSource {
     
@@ -115,6 +130,8 @@ extension ScheduleViewController: UITableViewDataSource {
         return cell
     }
 }
+
+// MARK: - UITableViewDelegate
 
 extension ScheduleViewController: UITableViewDelegate {
     

@@ -13,7 +13,11 @@ protocol NewTrackerViewControllerDelegate: AnyObject {
 
 final class NewTrackerViewController: UIViewController {
     
+    // MARK: - Public
+    
     weak var delegate: NewTrackerViewControllerDelegate?
+    
+    // MARK: - Private UI
     
     private let nameTrackerTextField = UITextField()
     private let tableView = UITableView()
@@ -21,8 +25,12 @@ final class NewTrackerViewController: UIViewController {
     private let cancelButton = UIButton()
     private let createButton = UIButton()
     
+    // MARK: - Private Properties
+    
     private var selectedSchedule: [Weekday] = []
     private let rows = ["Категория", "Расписание"]
+    
+    // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,6 +39,8 @@ final class NewTrackerViewController: UIViewController {
         setupConstraints()
         updateCreateButtonState()
     }
+    
+    // MARK: - Setup
     
     private func setupView() {
         view.backgroundColor = .white
@@ -105,6 +115,8 @@ final class NewTrackerViewController: UIViewController {
         ])
     }
     
+    // MARK: - State
+    
     private func updateCreateButtonState() {
         let hasName = !(nameTrackerTextField.text ?? "").isEmpty
         let hasSchedule = !selectedSchedule.isEmpty
@@ -114,6 +126,8 @@ final class NewTrackerViewController: UIViewController {
         ? UIColor(hex: "#1A1B22")
         : UIColor(hex: "#AEAFB4")
     }
+    
+    // MARK: - Actions
     
     @objc private func nameTrackerTextFieldChanged() {
         updateCreateButtonState()
@@ -138,7 +152,24 @@ final class NewTrackerViewController: UIViewController {
         delegate?.didCreateTracker(tracker)
         dismiss(animated: true)
     }
+    
+    private func selectedScheduleText() -> String? {
+        if selectedSchedule.isEmpty {
+            return nil
+        }
+        
+        if selectedSchedule.count == Weekday.allCases.count {
+            return "Каждый день"
+        }
+        return selectedSchedule
+            .sorted { $0.rawValue < $1.rawValue }
+            .map { $0.shortTitle }
+            .joined(separator: ", ")
+        
+    }
 }
+
+// MARK: - UITableViewDataSource
 
 extension NewTrackerViewController: UITableViewDataSource {
     
@@ -150,16 +181,25 @@ extension NewTrackerViewController: UITableViewDataSource {
         _ tableView: UITableView,
         cellForRowAt indexPath: IndexPath
     ) -> UITableViewCell {
-        let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
+        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         
         cell.textLabel?.text = rows[indexPath.row]
         cell.textLabel?.font = .systemFont(ofSize: 17)
         cell.backgroundColor = UIColor(hex: "#E6E8EB", alpha: 0.3)
         cell.accessoryType = .disclosureIndicator
         
+        cell.detailTextLabel?.font = .systemFont(ofSize: 17)
+        cell.detailTextLabel?.textColor = UIColor(hex: "#AEAFB4")
+        
+        if indexPath.row == 1 {
+            cell.detailTextLabel?.text = selectedScheduleText()
+        }
+        
         return cell
     }
 }
+
+// MARK: - UITableViewDelegate
 
 extension NewTrackerViewController: UITableViewDelegate {
     
@@ -184,10 +224,13 @@ extension NewTrackerViewController: UITableViewDelegate {
     }
 }
 
+// MARK: - ScheduleViewControllerDelegate
+
 extension NewTrackerViewController: ScheduleViewControllerDelegate {
     
     func scheduleSelected(_ schedule: [Weekday]) {
         selectedSchedule = schedule
+        tableView.reloadRows(at: [IndexPath(row: 1, section: 0)], with: .none)
         updateCreateButtonState()
     }
 }

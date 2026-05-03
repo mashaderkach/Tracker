@@ -14,14 +14,14 @@ final class TabBarController: UITabBarController {
     
     private func setupTabBar() {
         let trackersViewController = TrackersViewController()
-        let statisticViewController = StatisticViewController()
+        let statisticsViewController = StatisticsViewController()
         
         let trackersNavigationController = UINavigationController(rootViewController: trackersViewController)
-        let statisticNavigationController = UINavigationController(rootViewController: statisticViewController)
+        let statisticsNavigationController = UINavigationController(rootViewController: statisticsViewController)
         
         trackersViewController.tabBarItem = UITabBarItem(title: "Трекеры", image: UIImage(resource: .trackerIcon), tag: 1)
-        statisticViewController.tabBarItem = UITabBarItem(title: "Статистика", image: UIImage(resource: .statisticIcon), tag: 1)
+        statisticsViewController.tabBarItem = UITabBarItem(title: "Статистика", image: UIImage(resource: .statisticIcon), tag: 1)
         
-        viewControllers = [trackersNavigationController, statisticNavigationController]
+        viewControllers = [trackersNavigationController, statisticsNavigationController]
     }
 }

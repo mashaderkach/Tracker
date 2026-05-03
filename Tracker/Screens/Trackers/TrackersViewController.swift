@@ -5,7 +5,9 @@
 
 import UIKit
 
-class TrackersViewController: UIViewController {
+final class TrackersViewController: UIViewController {
+    
+    // MARK: - Private UI
     
     private var trackerLabel: UILabel!
     private var addTrackerButton: UIBarButtonItem!
@@ -13,15 +15,17 @@ class TrackersViewController: UIViewController {
     private var datePicker: UIDatePicker!
     private var textLabel: UILabel!
     private var stubImageView: UIImageView!
+    private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+    
+    // MARK: - Private Properties
     
     private var categories: [TrackerCategory] = []
     private var visibleCategories: [TrackerCategory] = []
     private var completedTrackers: [TrackerRecord] = []
-    
-    private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-    
     private var currentDate: Date = Date()
     private let cellIdentifier = "cell"
+    
+    // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,6 +35,8 @@ class TrackersViewController: UIViewController {
         applyFilters()
         updateEmptyState()
     }
+    
+    // MARK: - Setup
     
     private func setupView() {
         view.backgroundColor = .white
@@ -124,6 +130,8 @@ class TrackersViewController: UIViewController {
         ])
     }
     
+    // MARK: - State
+    
     private func applyFilters() {
         let weekday = Weekday.from(date: currentDate)
         let searchText = searchTextField.text?.lowercased() ?? ""
@@ -134,9 +142,48 @@ class TrackersViewController: UIViewController {
                 return matchesDay && matchesText
             }
             return trackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: trackers)
-            
         }
     }
+    
+    private func isCompleted(_ id: UUID) -> Bool {
+        completedTrackers.contains {
+            $0.trackerId == id &&
+            Calendar.current.isDate($0.date, inSameDayAs: currentDate)
+        }
+    }
+    
+    private func count(_ id: UUID) -> Int {
+        completedTrackers.filter { $0.trackerId == id }.count
+    }
+    
+    private func updateEmptyState() {
+        let isEmpty = visibleCategories.isEmpty
+        collectionView.isHidden = isEmpty
+        stubImageView.isHidden = !isEmpty
+        textLabel.isHidden = !isEmpty
+    }
+    
+    // MARK: - Private Methods
+    
+    private func addNewTracker(_ tracker: Tracker) {
+        if categories.isEmpty {
+            categories = [
+                TrackerCategory(title: "Домашний уют", trackers: [tracker])
+            ]
+        } else {
+            let oldCategory = categories[0]
+            let newTrackers = oldCategory.trackers + [tracker]
+            let newCategory = TrackerCategory(title: oldCategory.title, trackers: newTrackers)
+            
+            categories[0] = newCategory
+        }
+        
+        applyFilters()
+        collectionView.reloadData()
+        updateEmptyState()
+    }
+    
+    // MARK: - Actions
     
     @objc private func dateChanged() {
         currentDate = datePicker.date
@@ -158,43 +205,10 @@ class TrackersViewController: UIViewController {
         navigationController.modalPresentationStyle = .pageSheet
         present(navigationController, animated: true)
     }
-    
-    private func isCompleted(_ id: UUID) -> Bool {
-        completedTrackers.contains {
-            $0.trackerId == id &&
-            Calendar.current.isDate($0.date, inSameDayAs: currentDate)
-        }
-    }
-    
-    private func count(_ id: UUID) -> Int {
-        completedTrackers.filter { $0.trackerId == id }.count
-    }
-    
-    private func updateEmptyState() {
-        let isEmpty = visibleCategories.isEmpty
-        collectionView.isHidden = isEmpty
-        stubImageView.isHidden = !isEmpty
-        textLabel.isHidden = !isEmpty
-    }
-    
-    private func addNewTracker(_ tracker: Tracker) {
-        if categories.isEmpty {
-            categories = [
-                TrackerCategory(title: "Домашний уют", trackers: [tracker])
-            ]
-        } else {
-            let oldCategory = categories[0]
-            let newTrackers = oldCategory.trackers + [tracker]
-            let newCategory = TrackerCategory(title: oldCategory.title, trackers: newTrackers)
-            
-            categories[0] = newCategory
-        }
-        
-        applyFilters()
-        collectionView.reloadData()
-        updateEmptyState()
-    }
 }
+
+// MARK: - UICollectionViewDataSource
+
 extension TrackersViewController: UICollectionViewDataSource {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -223,6 +237,8 @@ extension TrackersViewController: UICollectionViewDataSource {
     }
 }
 
+// MARK: - UICollectionViewDelegateFlowLayout
+
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -243,6 +259,8 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
         return .zero
     }
 }
+
+// MARK: - TrackerViewCellDelegate
 
 extension TrackersViewController: TrackerViewCellDelegate {
     
@@ -270,6 +288,8 @@ extension TrackersViewController: TrackerViewCellDelegate {
         collectionView.reloadItems(at: [indexPath])
     }
 }
+
+// MARK: - NewTrackerViewControllerDelegate
 
 extension TrackersViewController: NewTrackerViewControllerDelegate {
     

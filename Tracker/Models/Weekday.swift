@@ -28,6 +28,18 @@ enum Weekday: String, CaseIterable {
         }
     }
     
+    var shortTitle: String {
+        switch self {
+        case .monday: return "Пн"
+        case .tuesday: return "Вт"
+        case .wednesday: return "Ср"
+        case .thursday: return "Чт"
+        case .friday: return "Пятница"
+        case .saturday: return "Суббота"
+        case .sunday: return "Воскресенье"
+        }
+    }
+    
     static func from(date: Date) -> Weekday {
         let weekday = Calendar.current.component(.weekday, from: date)
         switch weekday {

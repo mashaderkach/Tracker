@@ -12,13 +12,20 @@ protocol TrackerViewCellDelegate: AnyObject {
 }
 
 final class TrackerViewCell: UICollectionViewCell {
+    
+    // MARK: - Public
+    
     weak var delegate: TrackerViewCellDelegate?
+    
+    // MARK: - Private UI
     
     private let emojiLabel = UILabel()
     private let titleLabel = UILabel()
     private let dayLabel = UILabel()
     private let addButton = UIButton()
     private let cellContainerView = UIView()
+    
+    // MARK: - Initializers
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -29,8 +36,9 @@ final class TrackerViewCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Setup
+    
     private func setupUI() {
-        
         emojiLabel.textAlignment = .center
         emojiLabel.font = .systemFont(ofSize: 16, weight: .medium)
         emojiLabel.backgroundColor = UIColor.white.withAlphaComponent(0.3)
@@ -68,7 +76,6 @@ final class TrackerViewCell: UICollectionViewCell {
     }
     
     private func setupConstraints() {
-        
         NSLayoutConstraint.activate([
             
             cellContainerView.topAnchor.constraint(equalTo: contentView.topAnchor),
@@ -95,6 +102,8 @@ final class TrackerViewCell: UICollectionViewCell {
         ])
     }
     
+    // MARK: - Public Methods
+    
     func configure(with tracker: Tracker, isCompleted: Bool, count: Int) {
         emojiLabel.text = tracker.emoji
         titleLabel.text = tracker.title
@@ -104,15 +113,17 @@ final class TrackerViewCell: UICollectionViewCell {
         addButton.setImage(UIImage(systemName: imageName), for: .normal)
         addButton.backgroundColor = tracker.color
         addButton.alpha = isCompleted ? 0.3 : 1
-        
     }
+    
+    // MARK: - Actions
     
     @objc private func tapButton() {
         delegate?.didTapButton(in: self)
     }
     
+    // MARK: - Private Methods
+    
     private func daysText(_ count: Int) -> String {
-        
         let value = abs(count) % 100
         let lastDigit = value % 10
         if value >= 11 && value <= 14 {
