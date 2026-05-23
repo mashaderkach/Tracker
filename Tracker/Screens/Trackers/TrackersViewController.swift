@@ -25,6 +25,9 @@ final class TrackersViewController: UIViewController {
     private var currentDate: Date = Date()
     private let cellIdentifier = "cell"
     
+    private let trackerCategoryStore = TrackerCategoryStore()
+    private let trackerRecordStore = TrackerRecordStore()
+    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
@@ -32,6 +35,11 @@ final class TrackersViewController: UIViewController {
         setupView()
         setupSubViews()
         setupConstraints()
+        
+        trackerCategoryStore.delegate = self
+        trackerRecordStore.delegate = self
+        
+        loadData()
         applyFilters()
         updateEmptyState()
     }
@@ -126,8 +134,18 @@ final class TrackersViewController: UIViewController {
             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
-            
         ])
+    }
+
+    // MARK: - Data Loading
+    
+    private func loadData() {
+        do {
+            categories = try trackerCategoryStore.fetchCategories()
+            completedTrackers = try trackerRecordStore.fetchRecords()
+        } catch {
+            print("Ошибка загрузки данных: \(error)")
+        }
     }
     
     // MARK: - State
@@ -144,6 +162,8 @@ final class TrackersViewController: UIViewController {
             return trackers.isEmpty ? nil : TrackerCategory(title: category.title, trackers: trackers)
         }
     }
+    
+    // MARK: - Helpers
     
     private func isCompleted(_ id: UUID) -> Bool {
         completedTrackers.contains {
@@ -166,21 +186,11 @@ final class TrackersViewController: UIViewController {
     // MARK: - Private Methods
     
     private func addNewTracker(_ tracker: Tracker) {
-        if categories.isEmpty {
-            categories = [
-                TrackerCategory(title: "Домашний уют", trackers: [tracker])
-            ]
-        } else {
-            let oldCategory = categories[0]
-            let newTrackers = oldCategory.trackers + [tracker]
-            let newCategory = TrackerCategory(title: oldCategory.title, trackers: newTrackers)
-            
-            categories[0] = newCategory
+        do {
+            try trackerCategoryStore.addTracker(tracker, toCategoryWithTitle: "Домашний уют")
+        } catch {
+            print("Ошибка сохранения трекера: \(error)")
         }
-        
-        applyFilters()
-        collectionView.reloadData()
-        updateEmptyState()
     }
     
     // MARK: - Actions
@@ -268,24 +278,24 @@ extension TrackersViewController: TrackerViewCellDelegate {
         guard let indexPath = collectionView.indexPath(for: cell) else { return }
         
         let tracker = visibleCategories[indexPath.section].trackers[indexPath.item]
-        
         let selectedDay = Calendar.current.startOfDay(for: currentDate)
-        
         let today = Calendar.current.startOfDay(for: Date())
         
         guard selectedDay <= today else { return }
+        let record = TrackerRecord(
+            trackerId: tracker.id,
+            date: currentDate
+        )
         
-        if let index = completedTrackers.firstIndex(where: {
-            $0.trackerId == tracker.id &&
-            Calendar.current.isDate($0.date, inSameDayAs: currentDate)
-        }) {
-            completedTrackers.remove(at: index)
-        } else {
-            completedTrackers.append(
-                TrackerRecord(trackerId: tracker.id, date: currentDate)
-            )
+        do {
+            if isCompleted(tracker.id) {
+                try trackerRecordStore.deleteRecord(record)
+            } else {
+                try trackerRecordStore.addRecord(record)
+            }
+        } catch {
+            print("Ошибка обновления записи трекера: \(error)")
         }
-        collectionView.reloadItems(at: [indexPath])
     }
 }
 
@@ -295,5 +305,27 @@ extension TrackersViewController: NewTrackerViewControllerDelegate {
     
     func didCreateTracker(_ tracker: Tracker) {
         addNewTracker(tracker)
+    }
+}
+
+// MARK: - TrackerCategoryStoreDelegate
+
+extension TrackersViewController: TrackerCategoryStoreDelegate {
+    func trackerCategoryStoreDidUpdate(_ store: TrackerCategoryStore) {
+        loadData()
+        applyFilters()
+        collectionView.reloadData()
+        updateEmptyState()
+    }
+}
+
+// MARK: - TrackerRecordStoreDelegate
+
+extension TrackersViewController: TrackerRecordStoreDelegate {
+    func trackerRecordStoreDidUpdate(_ store: TrackerRecordStore) {
+        loadData()
+        applyFilters()
+        collectionView.reloadData()
+        updateEmptyState()
     }
 }
