@@ -46,8 +46,7 @@ final class TrackerRecordStore: NSObject {
     }
     
     convenience override init() {
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        self.init(context: appDelegate.persistentContainer.viewContext)
+        self.init(context: DataBaseStore.shared.context)
     }
     
     // MARK: - Public Methods

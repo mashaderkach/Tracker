@@ -9,12 +9,12 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Private UI
     
-    private var trackerLabel: UILabel!
-    private var addTrackerButton: UIBarButtonItem!
-    private var searchTextField: UISearchTextField!
-    private var datePicker: UIDatePicker!
-    private var textLabel: UILabel!
-    private var stubImageView: UIImageView!
+    private let trackerLabel = UILabel()
+    private var addTrackerButton = UIBarButtonItem()
+    private let searchTextField = UISearchTextField()
+    private let datePicker = UIDatePicker()
+    private let textLabel = UILabel()
+    private let stubImageView = UIImageView()
     private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     
     // MARK: - Private Properties
@@ -56,7 +56,6 @@ final class TrackersViewController: UIViewController {
         addTrackerButton = UIBarButtonItem(image: UIImage(resource: .addTracker), style: .plain, target: self, action: #selector(addTrackerTapped))
         navigationItem.leftBarButtonItem = addTrackerButton
         
-        datePicker = UIDatePicker()
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .compact
         datePicker.backgroundColor = UIColor(hex: "#F0F0F0")
@@ -67,13 +66,11 @@ final class TrackersViewController: UIViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
         datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
         
-        trackerLabel = UILabel()
         trackerLabel.text = "Трекеры"
         trackerLabel.font = .systemFont(ofSize: 34, weight: .bold)
         trackerLabel.textColor = UIColor(hex: "#1A1B22")
         trackerLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        searchTextField = UISearchTextField()
         searchTextField.placeholder = "Поиск"
         searchTextField.text = ""
         searchTextField.backgroundColor = UIColor(hex: "#767680", alpha: 0.12)
@@ -85,10 +82,9 @@ final class TrackersViewController: UIViewController {
         searchTextField.translatesAutoresizingMaskIntoConstraints = false
         searchTextField.addTarget(self, action: #selector(searchChanged), for: .editingChanged)
         
-        stubImageView = UIImageView(image: UIImage(named: "stub"))
+        stubImageView.image = UIImage(named: "stub")
         stubImageView.translatesAutoresizingMaskIntoConstraints = false
         
-        textLabel = UILabel()
         textLabel.text = "Что будем отслеживать?"
         textLabel.font = .systemFont(ofSize: 12, weight: .medium)
         textLabel.textColor = UIColor(hex: "#1A1B22")
@@ -222,19 +218,21 @@ final class TrackersViewController: UIViewController {
 extension TrackersViewController: UICollectionViewDataSource {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return visibleCategories.count
+        visibleCategories.count
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return visibleCategories[section].trackers.count
+        visibleCategories[section].trackers.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        let cell = collectionView.dequeueReusableCell(
+        guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: cellIdentifier,
             for: indexPath
-        ) as! TrackerViewCell
+        ) as? TrackerViewCell else {
+            return UICollectionViewCell()
+        }
         
         let tracker = visibleCategories[indexPath.section].trackers[indexPath.item]
         cell.configure(
