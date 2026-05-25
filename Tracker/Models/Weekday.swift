@@ -16,6 +16,8 @@ enum Weekday: String, CaseIterable {
     case saturday
     case sunday
     
+    // MARK: - Titles
+    
     var title: String {
         switch self {
         case .monday: return "Понедельник"
@@ -34,11 +36,13 @@ enum Weekday: String, CaseIterable {
         case .tuesday: return "Вт"
         case .wednesday: return "Ср"
         case .thursday: return "Чт"
-        case .friday: return "Пятница"
-        case .saturday: return "Суббота"
-        case .sunday: return "Воскресенье"
+        case .friday: return "Пт"
+        case .saturday: return "Сб"
+        case .sunday: return "Вс"
         }
     }
+    
+    // MARK: - Helpers
     
     static func from(date: Date) -> Weekday {
         let weekday = Calendar.current.component(.weekday, from: date)
