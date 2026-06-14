@@ -8,14 +8,21 @@
 import CoreData
 
 final class DataBaseStore {
+    
+    // MARK: - Shared
+    
     static let shared = DataBaseStore()
 
+    // MARK: - Properties
+    
     let persistentContainer: NSPersistentContainer
 
     var context: NSManagedObjectContext {
         persistentContainer.viewContext
     }
 
+    // MARK: - Initialization
+    
     private init() {
         persistentContainer = NSPersistentContainer(name: "Tracker")
         persistentContainer.loadPersistentStores { _, error in
@@ -25,6 +32,8 @@ final class DataBaseStore {
         }
     }
 
+    // MARK: - Public Methods
+    
     func saveContext() {
         let context = persistentContainer.viewContext
 

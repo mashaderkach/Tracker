@@ -68,6 +68,21 @@ final class TrackerRecordStore: NSObject {
         try context.save()
     }
     
+    func fetchRecords() throws -> [TrackerRecord] {
+        guard let recordsCoreData = fetchedResultsController.fetchedObjects else {
+            return []
+        }
+        
+        return recordsCoreData.compactMap { recordCoreData in
+            guard
+                let date = recordCoreData.date,
+                let trackerId = recordCoreData.tracker?.id
+            else { return nil }
+            
+            return TrackerRecord(trackerId: trackerId, date: date)
+        }
+    }
+    
     // MARK: - Private Methods
     
     private func fetchTrackerCoreData(id: UUID) throws -> TrackerCoreData? {
@@ -88,21 +103,6 @@ final class TrackerRecordStore: NSObject {
         request.fetchLimit = 1
         
         return try context.fetch(request).first
-    }
-    
-    func fetchRecords() throws -> [TrackerRecord] {
-        guard let recordsCoreData = fetchedResultsController.fetchedObjects else {
-            return []
-        }
-        
-        return recordsCoreData.compactMap { recordCoreData in
-            guard
-                let date = recordCoreData.date,
-                let trackerId = recordCoreData.tracker?.id
-            else { return nil }
-            
-            return TrackerRecord(trackerId: trackerId, date: date)
-        }
     }
 }
 

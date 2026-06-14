@@ -181,9 +181,9 @@ final class TrackersViewController: UIViewController {
     
     // MARK: - Private Methods
     
-    private func addNewTracker(_ tracker: Tracker) {
+    private func addNewTracker(_ tracker: Tracker, categoryTitle: String) {
         do {
-            try trackerCategoryStore.addTracker(tracker, toCategoryWithTitle: "Домашний уют")
+            try trackerCategoryStore.addTracker(tracker, toCategoryWithTitle: categoryTitle)
         } catch {
             print("Ошибка сохранения трекера: \(error)")
         }
@@ -301,8 +301,8 @@ extension TrackersViewController: TrackerViewCellDelegate {
 
 extension TrackersViewController: NewTrackerViewControllerDelegate {
     
-    func didCreateTracker(_ tracker: Tracker) {
-        addNewTracker(tracker)
+    func didCreateTracker(_ tracker: Tracker, categoryTitle: String) {
+        addNewTracker(tracker, categoryTitle: categoryTitle)
     }
 }
 
