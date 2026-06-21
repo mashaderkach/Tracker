@@ -8,12 +8,12 @@
 import UIKit
 
 protocol NewTrackerViewControllerDelegate: AnyObject {
-    func didCreateTracker(_ tracker: Tracker)
+    func didCreateTracker(_ tracker: Tracker, categoryTitle: String)
 }
 
 final class NewTrackerViewController: UIViewController {
     
-    // MARK: - Public
+    // MARK: - Public Properties
     
     weak var delegate: NewTrackerViewControllerDelegate?
     
@@ -44,13 +44,13 @@ final class NewTrackerViewController: UIViewController {
     
     private var selectedEmoji: String?
     private var selectedColor: UIColor?
+    private var selectedCategory: String?
     
     private var selectedSchedule: [Weekday] = []
     private let rows = ["Категория", "Расписание"]
     private let collectionCellIdentifier = "CollectionCell"
     
     private let emojis = MockData.emojis
-    
     private let colors = MockData.colors
     
     // MARK: - Lifecycle
@@ -73,7 +73,6 @@ final class NewTrackerViewController: UIViewController {
     }
     
     private func setupSubViews() {
-        
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -208,8 +207,9 @@ final class NewTrackerViewController: UIViewController {
         let hasSchedule = !selectedSchedule.isEmpty
         let hasEmoji = selectedEmoji != nil
         let hasColor = selectedColor != nil
+        let hasCategory = selectedCategory != nil
         
-        createButton.isEnabled = hasName && hasSchedule && hasEmoji && hasColor
+        createButton.isEnabled = hasName && hasCategory && hasSchedule && hasEmoji && hasColor
         createButton.backgroundColor = createButton.isEnabled
         ? UIColor(hex: "#1A1B22")
         : UIColor(hex: "#AEAFB4")
@@ -230,6 +230,7 @@ final class NewTrackerViewController: UIViewController {
         guard !selectedSchedule.isEmpty else { return }
         guard let selectedColor else { return }
         guard let selectedEmoji else { return }
+        guard let selectedCategory else { return }
         
         let tracker = Tracker(
             id: UUID(),
@@ -239,7 +240,7 @@ final class NewTrackerViewController: UIViewController {
             schedule: selectedSchedule
         )
         
-        delegate?.didCreateTracker(tracker)
+        delegate?.didCreateTracker(tracker, categoryTitle: selectedCategory)
         dismiss(animated: true)
     }
     
@@ -257,7 +258,6 @@ final class NewTrackerViewController: UIViewController {
             .sorted { $0.rawValue < $1.rawValue }
             .map { $0.shortTitle }
             .joined(separator: ", ")
-        
     }
 }
 
@@ -280,6 +280,10 @@ extension NewTrackerViewController: UITableViewDataSource {
         cell.detailTextLabel?.font = .systemFont(ofSize: 17)
         cell.detailTextLabel?.textColor = UIColor(hex: "#AEAFB4")
         
+        if indexPath.row == 0 {
+            cell.detailTextLabel?.text = selectedCategory
+        }
+        
         if indexPath.row == 1 {
             cell.detailTextLabel?.text = selectedScheduleText()
         }
@@ -297,6 +301,18 @@ extension NewTrackerViewController: UITableViewDelegate {
         didSelectRowAt indexPath: IndexPath
     ) {
         tableView.deselectRow(at: indexPath, animated: true)
+        
+        if indexPath.row == 0 {
+            let viewController = CategoryViewController()
+            viewController.selectedCategoryTitle = selectedCategory
+            
+            viewController.onCategorySelected = { [weak self] title in
+                self?.selectedCategory = title
+                self?.tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .none)
+                self?.updateCreateButtonState()
+            }
+            navigationController?.pushViewController(viewController, animated: true)
+        }
         
         if indexPath.row == 1 {
             let viewController = ScheduleViewController()

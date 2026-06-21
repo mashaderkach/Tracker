@@ -28,7 +28,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
     private func setupWindow(with windowScene: UIWindowScene) {
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = TabBarController()
+        
+        let hasSeenOnboarding = UserDefaults.standard.bool(forKey: "hasSeenOnboarding")
+        
+        if hasSeenOnboarding {
+            window.rootViewController = TabBarController()
+        } else {
+            window.rootViewController = OnboardingViewController(
+                transitionStyle: .scroll,
+                navigationOrientation: .horizontal
+            )
+        }
+        
         window.makeKeyAndVisible()
         self.window = window
     }
